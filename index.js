@@ -1,3 +1,4 @@
+//eslint-disable-next-line
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }
@@ -6,18 +7,17 @@ const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
 const Person = require('./models/person')
-const { response } = require('express')
 
 app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-morgan.token('body', (req, res) => JSON.stringify(req.body))
+morgan.token('body', req => JSON.stringify(req.body))
 
 app.get('/info', (req, res, next) => {
     Person.find({}).then(people => {
         const amount = people.length
-        time = new Date()
+        const time = new Date()
         res.send(`Phonebook has info for ${amount} people <br/><br/> ${time}`)
     })
         .catch(error => next(error))
@@ -55,10 +55,9 @@ app.post('/api/persons/', (req,res, next) => {
     if (!body.number)
         return res.status(400).json({ error: 'number missing' })
 
-    // Working  version before adding db support //
+    // Working version before adding db support //
     //if (persons.some(person => person.name === body.name))
     //    return res.status(400).json({ error: 'name must be unique' })
-    
     const person = new Person({
         name: body.name,
         number: body.number
@@ -98,12 +97,13 @@ const errorHandler = (error, req, res, next) => {
     if (error.name === 'CastError') {
         return res.status(400).send({ error: 'malformatted id' })
     } else if (error.name === 'ValidationError') {
-        return res.status(400).json({ error: error.message })
-    } 
+        return res.status(400).send({ error: error.message })
+    }
 
     next(error)
 }
 app.use(errorHandler)
 
+//eslint-disable-next-line
 const PORT = process.env.PORT
-app.listen(PORT, () => console.log("Server running on ", PORT) )
+app.listen(PORT, () => console.log('Server running on ', PORT) )
